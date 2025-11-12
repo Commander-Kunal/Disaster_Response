@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Himachal Disaster Response</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; padding: 0; font-family: sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        .legend { background: white; padding: 10px; border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. Initialize Map centered on Himachal Pradesh
+        const map = L.map('map').setView([31.9, 77.1], 8);
+
+        // 2. Add Base Tile Layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // 3. Define Styles for different data types
+        const zoneStyle = {
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.3,
+            weight: 2
+        };
+
+        const incidentIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        const resourceIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        // 4. Fetch and Render Data Functions
+        async function loadData() {
+            try {
+                // Load Disaster Zones (Polygons)
+                const zonesReq = await fetch('http://127.0.0.1:8000/api/zones');
+                const zonesData = await zonesReq.json();
+                L.geoJSON(zonesData, {
+                    style: zoneStyle,
+                    onEachFeature: (feature, layer) => {
+                        layer.bindPopup(`<strong>DANGER ZONE</strong><br>${feature.properties.description}<br>Severity: ${feature.properties.severity}`);
+                    }
+                }).addTo(map);
+
+                // Load Resources (Blue Markers)
+                const resReq = await fetch('http://127.0.0.1:8000/api/resources');
+                const resData = await resReq.json();
+                L.geoJSON(resData, {
+                    pointToLayer: (feature, latlng) => L.marker(latlng, {icon: resourceIcon}),
+                    onEachFeature: (feature, layer) => {
+                        layer.bindPopup(`<strong>${feature.properties.name}</strong><br>Type: ${feature.properties.type}`);
+                    }
+                }).addTo(map);
+
+                 // Load Incidents (Red Markers)
+                 const incReq = await fetch('http://127.0.0.1:8000/api/incidents');
+                 const incData = await incReq.json();
+                 L.geoJSON(incData, {
+                    pointToLayer: (feature, latlng) => L.marker(latlng, {icon: incidentIcon}),
+                    onEachFeature: (feature, layer) => {
+                        layer.bindPopup(`<strong>INCIDENT</strong><br>${feature.properties.description}`);
+                    }
+                }).addTo(map);
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                alert("Ensure FastAPI backend is running!");
+            }
+        }
+
+        // 5. Execute
+        loadData();
+
+    </script>
+</body>
+</html>
