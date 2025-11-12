@@ -16,8 +16,6 @@ This prototype is populated with realistic data for the Himachal Pradesh, India,
 * **Safe Route Prioritization:** A powerful query that finds assets *within* a radius but *outside* any danger zone.
 * **Interactive Map Dashboard:** A simple Leaflet.js frontend visualizes all assets, incidents, and zones in real-time.
 
-![A screenshot of the Leaflet.js map showing points for resources and incidents, and red polygons for hazard zones over a map of Himachal Pradesh.](https://i.imgur.com/39hYvYJ.png)
-*(This is a placeholder image. Replace it with a screenshot of your running `index.html`)*
 
 ## Tech Stack
 
@@ -49,6 +47,48 @@ This prototype is populated with realistic data for the Himachal Pradesh, India,
 
     CREATE EXTENSION postgis;
     ```
-3.  (Optional) Use a SQL script (like the one I provided) to populate your tables with realistic data.
 
-### 3. Backend (
+### 3. Backend (FastAPI)
+
+1.  Clone this repository:
+    ```bash
+    git clone [https://github.com/Commander-Kunal/YOUR-REPO-NAME.git](https://github.com/Commander-Kunal/YOUR-REPO-NAME.git)
+    cd YOUR-REPO-NAME
+    ```
+2.  (Recommended) Create and activate a virtual environment:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+    ```
+3.  Install the required libraries:
+    ```bash
+    pip install fastapi uvicorn psycopg[binary]
+    ```
+4.  **Edit `main.py`:** Update the `DB_DSN` string with your PostgreSQL username, password, and database name.
+    ```python
+    DB_DSN = "postgresql://postgres:YOUR_PASSWORD_HERE@127.0.0.1/disaster_db"
+    ```
+5.  Run the API server:
+    ```bash
+    python -m uvicorn main:app --reload
+    ```
+    The server is now running at `http://127.0.0.1:8000`.
+
+### 4. Frontend (Leaflet)
+
+1.  **No setup required!**
+2.  Simply open the `index.html` file in any web browser.
+3.  The map will automatically fetch data from your running FastAPI server (`http://127.0.0.1:8000`).
+
+---
+
+## API Endpoints
+
+The API serves standard GeoJSON `FeatureCollection` objects.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/` | Root endpoint, confirms the API is running. |
+| `GET` | `/api/resources` | Returns all available resources (hospitals, police, etc.) as points. |
+| `GET` | `/api/zones` | Returns all active disaster zones (landslides, etc.) as polygons. |
+| `GET` | `/api/incidents` | Returns all active incidents (accidents, fires, etc.) as points. |
